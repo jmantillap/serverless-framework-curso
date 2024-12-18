@@ -1,0 +1,21 @@
+service: pizzaApp
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  profile: personal
+  memorySize: 512
+
+functions:
+  newOrder:
+    handler: handler.newOrder
+    events:
+      - httpApi:
+          path: /order
+          method: post
+  getOrder:
+    handler: handler.getOrder
+    events:
+      - httpApi:
+          path: /order/{orderId}
+          method: get        
