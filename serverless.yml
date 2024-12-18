@@ -4,11 +4,29 @@ provider:
   name: aws
   runtime: nodejs22.x
   profile: personal
+  region: us-east-1
+  environment:
+    REGION: ${self:provider.region}
   memorySize: 512
-
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - sqs:sendMessage
+          Resource:
+            Fn::GetAtt: [PendingOrderQueue, Arn]
+        - Effect: Allow
+          Action:
+            - sqs:sendMessage
+          Resource:
+            Fn::GetAtt: [OrdersToSendQueue, Arn]
 functions:
   newOrder:
     handler: handler.newOrder
+    environment:
+      PENDING_ORDERS_QUEUE: 
+        Ref: PendingOrderQueue
     events:
       - httpApi:
           path: /order
@@ -26,9 +44,19 @@ functions:
           arn:
             Fn::GetAtt: [PendingOrderQueue, Arn]
           batchSize: 1
+  sendOrder: 
+    handler: handler.sendOrder
+    environment:
+      ORDERS_TO_SEND_QUEUE: 
+        Ref: OrdersToSendQueue
+        
 resources:
   Resources:
     PendingOrderQueue:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: pendingOrderQueue
+    OrdersToSendQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ordersToSendQueue
