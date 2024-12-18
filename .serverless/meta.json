@@ -47,12 +47,660 @@
                           "Arn"
                         ]
                       }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "dynamodb:PutItem",
+                        "dynamodb:UpdateItem",
+                        "dynamodb:GetItem"
+                      ],
+                      "Resource": {
+                        "Fn::GetAtt": [
+                          "OrdersTable",
+                          "Arn"
+                        ]
+                      }
                     }
                   ]
                 }
               },
               "stage": "dev",
-              "versionFunctions": true
+              "versionFunctions": true,
+              "compiledCloudFormationTemplate": {
+                "AWSTemplateFormatVersion": "2010-09-09",
+                "Description": "The AWS CloudFormation template for this Serverless application",
+                "Resources": {
+                  "NewOrderLogGroup": {
+                    "Type": "AWS::Logs::LogGroup",
+                    "Properties": {
+                      "LogGroupName": "/aws/lambda/pizzaApp-dev-newOrder"
+                    }
+                  },
+                  "GetOrderLogGroup": {
+                    "Type": "AWS::Logs::LogGroup",
+                    "Properties": {
+                      "LogGroupName": "/aws/lambda/pizzaApp-dev-getOrder"
+                    }
+                  },
+                  "PrepOrderLogGroup": {
+                    "Type": "AWS::Logs::LogGroup",
+                    "Properties": {
+                      "LogGroupName": "/aws/lambda/pizzaApp-dev-prepOrder"
+                    }
+                  },
+                  "SendOrderLogGroup": {
+                    "Type": "AWS::Logs::LogGroup",
+                    "Properties": {
+                      "LogGroupName": "/aws/lambda/pizzaApp-dev-sendOrder"
+                    }
+                  },
+                  "IamRoleLambdaExecution": {
+                    "Type": "AWS::IAM::Role",
+                    "Properties": {
+                      "AssumeRolePolicyDocument": {
+                        "Version": "2012-10-17",
+                        "Statement": [
+                          {
+                            "Effect": "Allow",
+                            "Principal": {
+                              "Service": [
+                                "lambda.amazonaws.com"
+                              ]
+                            },
+                            "Action": [
+                              "sts:AssumeRole"
+                            ]
+                          }
+                        ]
+                      },
+                      "Policies": [
+                        {
+                          "PolicyName": {
+                            "Fn::Join": [
+                              "-",
+                              [
+                                "pizzaApp",
+                                "dev",
+                                "lambda"
+                              ]
+                            ]
+                          },
+                          "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                              {
+                                "Effect": "Allow",
+                                "Action": [
+                                  "logs:CreateLogStream",
+                                  "logs:CreateLogGroup",
+                                  "logs:TagResource"
+                                ],
+                                "Resource": [
+                                  {
+                                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/pizzaApp-dev*:*"
+                                  }
+                                ]
+                              },
+                              {
+                                "Effect": "Allow",
+                                "Action": [
+                                  "logs:PutLogEvents"
+                                ],
+                                "Resource": [
+                                  {
+                                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/pizzaApp-dev*:*:*"
+                                  }
+                                ]
+                              },
+                              {
+                                "Effect": "Allow",
+                                "Action": [
+                                  "sqs:sendMessage"
+                                ],
+                                "Resource": {
+                                  "Fn::GetAtt": [
+                                    "PendingOrderQueue",
+                                    "Arn"
+                                  ]
+                                }
+                              },
+                              {
+                                "Effect": "Allow",
+                                "Action": [
+                                  "sqs:sendMessage"
+                                ],
+                                "Resource": {
+                                  "Fn::GetAtt": [
+                                    "OrdersToSendQueue",
+                                    "Arn"
+                                  ]
+                                }
+                              },
+                              {
+                                "Effect": "Allow",
+                                "Action": [
+                                  "dynamodb:PutItem",
+                                  "dynamodb:UpdateItem",
+                                  "dynamodb:GetItem"
+                                ],
+                                "Resource": {
+                                  "Fn::GetAtt": [
+                                    "OrdersTable",
+                                    "Arn"
+                                  ]
+                                }
+                              },
+                              {
+                                "Effect": "Allow",
+                                "Action": [
+                                  "sqs:ReceiveMessage",
+                                  "sqs:DeleteMessage",
+                                  "sqs:GetQueueAttributes"
+                                ],
+                                "Resource": [
+                                  {
+                                    "Fn::GetAtt": [
+                                      "PendingOrderQueue",
+                                      "Arn"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "Path": "/",
+                      "RoleName": {
+                        "Fn::Join": [
+                          "-",
+                          [
+                            "pizzaApp",
+                            "dev",
+                            {
+                              "Ref": "AWS::Region"
+                            },
+                            "lambdaRole"
+                          ]
+                        ]
+                      }
+                    }
+                  },
+                  "NewOrderLambdaFunction": {
+                    "Type": "AWS::Lambda::Function",
+                    "Properties": {
+                      "Code": {
+                        "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
+                        "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
+                      },
+                      "Handler": "handler.newOrder",
+                      "Runtime": "nodejs22.x",
+                      "FunctionName": "pizzaApp-dev-newOrder",
+                      "MemorySize": 512,
+                      "Timeout": 6,
+                      "Environment": {
+                        "Variables": {
+                          "REGION": "us-east-1",
+                          "PENDING_ORDERS_QUEUE": {
+                            "Ref": "PendingOrderQueue"
+                          },
+                          "ORDERS_TABLE": {
+                            "Ref": "OrdersTable"
+                          }
+                        }
+                      },
+                      "Role": {
+                        "Fn::GetAtt": [
+                          "IamRoleLambdaExecution",
+                          "Arn"
+                        ]
+                      }
+                    },
+                    "DependsOn": [
+                      "NewOrderLogGroup"
+                    ]
+                  },
+                  "GetOrderLambdaFunction": {
+                    "Type": "AWS::Lambda::Function",
+                    "Properties": {
+                      "Code": {
+                        "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
+                        "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
+                      },
+                      "Handler": "handler.getOrder",
+                      "Runtime": "nodejs22.x",
+                      "FunctionName": "pizzaApp-dev-getOrder",
+                      "MemorySize": 512,
+                      "Timeout": 6,
+                      "Environment": {
+                        "Variables": {
+                          "REGION": "us-east-1",
+                          "ORDERS_TABLE": {
+                            "Ref": "OrdersTable"
+                          }
+                        }
+                      },
+                      "Role": {
+                        "Fn::GetAtt": [
+                          "IamRoleLambdaExecution",
+                          "Arn"
+                        ]
+                      }
+                    },
+                    "DependsOn": [
+                      "GetOrderLogGroup"
+                    ]
+                  },
+                  "PrepOrderLambdaFunction": {
+                    "Type": "AWS::Lambda::Function",
+                    "Properties": {
+                      "Code": {
+                        "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
+                        "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
+                      },
+                      "Handler": "handler.prepOrder",
+                      "Runtime": "nodejs22.x",
+                      "FunctionName": "pizzaApp-dev-prepOrder",
+                      "MemorySize": 512,
+                      "Timeout": 6,
+                      "Environment": {
+                        "Variables": {
+                          "REGION": "us-east-1",
+                          "ORDERS_TABLE": {
+                            "Ref": "OrdersTable"
+                          }
+                        }
+                      },
+                      "Role": {
+                        "Fn::GetAtt": [
+                          "IamRoleLambdaExecution",
+                          "Arn"
+                        ]
+                      }
+                    },
+                    "DependsOn": [
+                      "PrepOrderLogGroup"
+                    ]
+                  },
+                  "SendOrderLambdaFunction": {
+                    "Type": "AWS::Lambda::Function",
+                    "Properties": {
+                      "Code": {
+                        "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
+                        "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
+                      },
+                      "Handler": "handler.sendOrder",
+                      "Runtime": "nodejs22.x",
+                      "FunctionName": "pizzaApp-dev-sendOrder",
+                      "MemorySize": 512,
+                      "Timeout": 6,
+                      "Environment": {
+                        "Variables": {
+                          "REGION": "us-east-1",
+                          "ORDERS_TO_SEND_QUEUE": {
+                            "Ref": "OrdersToSendQueue"
+                          }
+                        }
+                      },
+                      "Role": {
+                        "Fn::GetAtt": [
+                          "IamRoleLambdaExecution",
+                          "Arn"
+                        ]
+                      }
+                    },
+                    "DependsOn": [
+                      "SendOrderLogGroup"
+                    ]
+                  },
+                  "NewOrderLambdaVersionC0JyEplAnmH9JXHgmYcdVKWwP9tSkV1m0J79ZFnMzs": {
+                    "Type": "AWS::Lambda::Version",
+                    "DeletionPolicy": "Retain",
+                    "Properties": {
+                      "FunctionName": {
+                        "Ref": "NewOrderLambdaFunction"
+                      },
+                      "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
+                    }
+                  },
+                  "GetOrderLambdaVersionXo7XpxJFNSIkUsL0RMmo8W3Q29pCCboJalALo7Hnw": {
+                    "Type": "AWS::Lambda::Version",
+                    "DeletionPolicy": "Retain",
+                    "Properties": {
+                      "FunctionName": {
+                        "Ref": "GetOrderLambdaFunction"
+                      },
+                      "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
+                    }
+                  },
+                  "PrepOrderLambdaVersionEnw5eK2MTUsMPddPaPPXuNW39SiDeE6k1sJcd9rvo": {
+                    "Type": "AWS::Lambda::Version",
+                    "DeletionPolicy": "Retain",
+                    "Properties": {
+                      "FunctionName": {
+                        "Ref": "PrepOrderLambdaFunction"
+                      },
+                      "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
+                    }
+                  },
+                  "SendOrderLambdaVersion2E8P6jqxTNDkbbNLfS7AsDKnsMzDDq80NWHq1j7vHEw": {
+                    "Type": "AWS::Lambda::Version",
+                    "DeletionPolicy": "Retain",
+                    "Properties": {
+                      "FunctionName": {
+                        "Ref": "SendOrderLambdaFunction"
+                      },
+                      "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
+                    }
+                  },
+                  "PrepOrderEventSourceMappingSQSPendingOrderQueue": {
+                    "Type": "AWS::Lambda::EventSourceMapping",
+                    "DependsOn": [
+                      "IamRoleLambdaExecution"
+                    ],
+                    "Properties": {
+                      "BatchSize": 1,
+                      "EventSourceArn": {
+                        "Fn::GetAtt": [
+                          "PendingOrderQueue",
+                          "Arn"
+                        ]
+                      },
+                      "FunctionName": {
+                        "Fn::GetAtt": [
+                          "PrepOrderLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "Enabled": true
+                    }
+                  },
+                  "HttpApi": {
+                    "Type": "AWS::ApiGatewayV2::Api",
+                    "Properties": {
+                      "Name": "dev-pizzaApp",
+                      "ProtocolType": "HTTP"
+                    }
+                  },
+                  "HttpApiStage": {
+                    "Type": "AWS::ApiGatewayV2::Stage",
+                    "Properties": {
+                      "ApiId": {
+                        "Ref": "HttpApi"
+                      },
+                      "StageName": "$default",
+                      "AutoDeploy": true,
+                      "DefaultRouteSettings": {
+                        "DetailedMetricsEnabled": false
+                      }
+                    }
+                  },
+                  "NewOrderLambdaPermissionHttpApi": {
+                    "Type": "AWS::Lambda::Permission",
+                    "Properties": {
+                      "FunctionName": {
+                        "Fn::GetAtt": [
+                          "NewOrderLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "Action": "lambda:InvokeFunction",
+                      "Principal": "apigateway.amazonaws.com",
+                      "SourceArn": {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":execute-api:",
+                            {
+                              "Ref": "AWS::Region"
+                            },
+                            ":",
+                            {
+                              "Ref": "AWS::AccountId"
+                            },
+                            ":",
+                            {
+                              "Ref": "HttpApi"
+                            },
+                            "/*"
+                          ]
+                        ]
+                      }
+                    }
+                  },
+                  "HttpApiIntegrationNewOrder": {
+                    "Type": "AWS::ApiGatewayV2::Integration",
+                    "Properties": {
+                      "ApiId": {
+                        "Ref": "HttpApi"
+                      },
+                      "IntegrationType": "AWS_PROXY",
+                      "IntegrationUri": {
+                        "Fn::GetAtt": [
+                          "NewOrderLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "PayloadFormatVersion": "2.0",
+                      "TimeoutInMillis": 30000
+                    }
+                  },
+                  "HttpApiRoutePostOrder": {
+                    "Type": "AWS::ApiGatewayV2::Route",
+                    "Properties": {
+                      "ApiId": {
+                        "Ref": "HttpApi"
+                      },
+                      "RouteKey": "POST /order",
+                      "Target": {
+                        "Fn::Join": [
+                          "/",
+                          [
+                            "integrations",
+                            {
+                              "Ref": "HttpApiIntegrationNewOrder"
+                            }
+                          ]
+                        ]
+                      }
+                    },
+                    "DependsOn": "HttpApiIntegrationNewOrder"
+                  },
+                  "GetOrderLambdaPermissionHttpApi": {
+                    "Type": "AWS::Lambda::Permission",
+                    "Properties": {
+                      "FunctionName": {
+                        "Fn::GetAtt": [
+                          "GetOrderLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "Action": "lambda:InvokeFunction",
+                      "Principal": "apigateway.amazonaws.com",
+                      "SourceArn": {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":execute-api:",
+                            {
+                              "Ref": "AWS::Region"
+                            },
+                            ":",
+                            {
+                              "Ref": "AWS::AccountId"
+                            },
+                            ":",
+                            {
+                              "Ref": "HttpApi"
+                            },
+                            "/*"
+                          ]
+                        ]
+                      }
+                    }
+                  },
+                  "HttpApiIntegrationGetOrder": {
+                    "Type": "AWS::ApiGatewayV2::Integration",
+                    "Properties": {
+                      "ApiId": {
+                        "Ref": "HttpApi"
+                      },
+                      "IntegrationType": "AWS_PROXY",
+                      "IntegrationUri": {
+                        "Fn::GetAtt": [
+                          "GetOrderLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "PayloadFormatVersion": "2.0",
+                      "TimeoutInMillis": 30000
+                    }
+                  },
+                  "HttpApiRouteGetOrderOrderidVar": {
+                    "Type": "AWS::ApiGatewayV2::Route",
+                    "Properties": {
+                      "ApiId": {
+                        "Ref": "HttpApi"
+                      },
+                      "RouteKey": "GET /order/{orderId}",
+                      "Target": {
+                        "Fn::Join": [
+                          "/",
+                          [
+                            "integrations",
+                            {
+                              "Ref": "HttpApiIntegrationGetOrder"
+                            }
+                          ]
+                        ]
+                      }
+                    },
+                    "DependsOn": "HttpApiIntegrationGetOrder"
+                  },
+                  "PendingOrderQueue": {
+                    "Type": "AWS::SQS::Queue",
+                    "Properties": {
+                      "QueueName": "pendingOrderQueue"
+                    }
+                  },
+                  "OrdersToSendQueue": {
+                    "Type": "AWS::SQS::Queue",
+                    "Properties": {
+                      "QueueName": "ordersToSendQueue"
+                    }
+                  },
+                  "OrdersTable": {
+                    "Type": "AWS::DynamoDB::Table",
+                    "Properties": {
+                      "TableName": "Orders",
+                      "AttributeDefinitions": [
+                        {
+                          "AttributeName": "orderId",
+                          "AttributeType": "S"
+                        }
+                      ],
+                      "KeySchema": [
+                        {
+                          "AttributeName": "orderId",
+                          "KeyType": "HASH"
+                        }
+                      ],
+                      "ProvisionedThroughput": {
+                        "ReadCapacityUnits": 1,
+                        "WriteCapacityUnits": 1
+                      }
+                    }
+                  }
+                },
+                "Outputs": {
+                  "ServerlessDeploymentBucketName": {
+                    "Value": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
+                    "Export": {
+                      "Name": "sls-pizzaApp-dev-ServerlessDeploymentBucketName"
+                    }
+                  },
+                  "NewOrderLambdaFunctionQualifiedArn": {
+                    "Description": "Current Lambda function version",
+                    "Value": {
+                      "Ref": "NewOrderLambdaVersionC0JyEplAnmH9JXHgmYcdVKWwP9tSkV1m0J79ZFnMzs"
+                    },
+                    "Export": {
+                      "Name": "sls-pizzaApp-dev-NewOrderLambdaFunctionQualifiedArn"
+                    }
+                  },
+                  "GetOrderLambdaFunctionQualifiedArn": {
+                    "Description": "Current Lambda function version",
+                    "Value": {
+                      "Ref": "GetOrderLambdaVersionXo7XpxJFNSIkUsL0RMmo8W3Q29pCCboJalALo7Hnw"
+                    },
+                    "Export": {
+                      "Name": "sls-pizzaApp-dev-GetOrderLambdaFunctionQualifiedArn"
+                    }
+                  },
+                  "PrepOrderLambdaFunctionQualifiedArn": {
+                    "Description": "Current Lambda function version",
+                    "Value": {
+                      "Ref": "PrepOrderLambdaVersionEnw5eK2MTUsMPddPaPPXuNW39SiDeE6k1sJcd9rvo"
+                    },
+                    "Export": {
+                      "Name": "sls-pizzaApp-dev-PrepOrderLambdaFunctionQualifiedArn"
+                    }
+                  },
+                  "SendOrderLambdaFunctionQualifiedArn": {
+                    "Description": "Current Lambda function version",
+                    "Value": {
+                      "Ref": "SendOrderLambdaVersion2E8P6jqxTNDkbbNLfS7AsDKnsMzDDq80NWHq1j7vHEw"
+                    },
+                    "Export": {
+                      "Name": "sls-pizzaApp-dev-SendOrderLambdaFunctionQualifiedArn"
+                    }
+                  },
+                  "HttpApiId": {
+                    "Description": "Id of the HTTP API",
+                    "Value": {
+                      "Ref": "HttpApi"
+                    },
+                    "Export": {
+                      "Name": "sls-pizzaApp-dev-HttpApiId"
+                    }
+                  },
+                  "HttpApiUrl": {
+                    "Description": "URL of the HTTP API",
+                    "Value": {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "https://",
+                          {
+                            "Ref": "HttpApi"
+                          },
+                          ".execute-api.",
+                          {
+                            "Ref": "AWS::Region"
+                          },
+                          ".",
+                          {
+                            "Ref": "AWS::URLSuffix"
+                          }
+                        ]
+                      ]
+                    },
+                    "Export": {
+                      "Name": "sls-pizzaApp-dev-HttpApiUrl"
+                    }
+                  }
+                }
+              },
+              "vpc": {}
             },
             "functions": {
               "newOrder": {
@@ -60,6 +708,9 @@
                 "environment": {
                   "PENDING_ORDERS_QUEUE": {
                     "Ref": "PendingOrderQueue"
+                  },
+                  "ORDERS_TABLE": {
+                    "Ref": "OrdersTable"
                   }
                 },
                 "events": [
@@ -67,25 +718,51 @@
                     "httpApi": {
                       "path": "/order",
                       "method": "post"
-                    }
+                    },
+                    "resolvedMethod": "POST",
+                    "resolvedPath": "/order"
                   }
                 ],
-                "name": "pizzaApp-dev-newOrder"
+                "name": "pizzaApp-dev-newOrder",
+                "package": {},
+                "memory": 512,
+                "timeout": 6,
+                "runtime": "nodejs22.x",
+                "vpc": {},
+                "versionLogicalId": "NewOrderLambdaVersionC0JyEplAnmH9JXHgmYcdVKWwP9tSkV1m0J79ZFnMzs"
               },
               "getOrder": {
                 "handler": "handler.getOrder",
+                "environment": {
+                  "ORDERS_TABLE": {
+                    "Ref": "OrdersTable"
+                  }
+                },
                 "events": [
                   {
                     "httpApi": {
                       "path": "/order/{orderId}",
                       "method": "get"
-                    }
+                    },
+                    "resolvedMethod": "GET",
+                    "resolvedPath": "/order/{orderId}"
                   }
                 ],
-                "name": "pizzaApp-dev-getOrder"
+                "name": "pizzaApp-dev-getOrder",
+                "package": {},
+                "memory": 512,
+                "timeout": 6,
+                "runtime": "nodejs22.x",
+                "vpc": {},
+                "versionLogicalId": "GetOrderLambdaVersionXo7XpxJFNSIkUsL0RMmo8W3Q29pCCboJalALo7Hnw"
               },
               "prepOrder": {
                 "handler": "handler.prepOrder",
+                "environment": {
+                  "ORDERS_TABLE": {
+                    "Ref": "OrdersTable"
+                  }
+                },
                 "events": [
                   {
                     "sqs": {
@@ -99,7 +776,13 @@
                     }
                   }
                 ],
-                "name": "pizzaApp-dev-prepOrder"
+                "name": "pizzaApp-dev-prepOrder",
+                "package": {},
+                "memory": 512,
+                "timeout": 6,
+                "runtime": "nodejs22.x",
+                "vpc": {},
+                "versionLogicalId": "PrepOrderLambdaVersionEnw5eK2MTUsMPddPaPPXuNW39SiDeE6k1sJcd9rvo"
               },
               "sendOrder": {
                 "handler": "handler.sendOrder",
@@ -109,7 +792,13 @@
                   }
                 },
                 "events": [],
-                "name": "pizzaApp-dev-sendOrder"
+                "name": "pizzaApp-dev-sendOrder",
+                "package": {},
+                "memory": 512,
+                "timeout": 6,
+                "runtime": "nodejs22.x",
+                "vpc": {},
+                "versionLogicalId": "SendOrderLambdaVersion2E8P6jqxTNDkbbNLfS7AsDKnsMzDDq80NWHq1j7vHEw"
               }
             },
             "resources": {
@@ -125,17 +814,38 @@
                   "Properties": {
                     "QueueName": "ordersToSendQueue"
                   }
+                },
+                "OrdersTable": {
+                  "Type": "AWS::DynamoDB::Table",
+                  "Properties": {
+                    "TableName": "Orders",
+                    "AttributeDefinitions": [
+                      {
+                        "AttributeName": "orderId",
+                        "AttributeType": "S"
+                      }
+                    ],
+                    "KeySchema": [
+                      {
+                        "AttributeName": "orderId",
+                        "KeyType": "HASH"
+                      }
+                    ],
+                    "ProvisionedThroughput": {
+                      "ReadCapacityUnits": 1,
+                      "WriteCapacityUnits": 1
+                    }
+                  }
                 }
-              }
+              },
+              "Outputs": {}
             }
           },
           "configFileDirPath": "D:\\CURSOS\\Serverless_udemy\\serverless-framework",
           "config": {
             "type": "self"
           },
-          "options": {
-            "function": "sendOrder"
-          },
+          "options": {},
           "stage": "dev",
           "dashboard": null,
           "logger": {
@@ -187,12 +897,660 @@
                           "Arn"
                         ]
                       }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "dynamodb:PutItem",
+                        "dynamodb:UpdateItem",
+                        "dynamodb:GetItem"
+                      ],
+                      "Resource": {
+                        "Fn::GetAtt": [
+                          "OrdersTable",
+                          "Arn"
+                        ]
+                      }
                     }
                   ]
                 }
               },
               "stage": "dev",
-              "versionFunctions": true
+              "versionFunctions": true,
+              "compiledCloudFormationTemplate": {
+                "AWSTemplateFormatVersion": "2010-09-09",
+                "Description": "The AWS CloudFormation template for this Serverless application",
+                "Resources": {
+                  "NewOrderLogGroup": {
+                    "Type": "AWS::Logs::LogGroup",
+                    "Properties": {
+                      "LogGroupName": "/aws/lambda/pizzaApp-dev-newOrder"
+                    }
+                  },
+                  "GetOrderLogGroup": {
+                    "Type": "AWS::Logs::LogGroup",
+                    "Properties": {
+                      "LogGroupName": "/aws/lambda/pizzaApp-dev-getOrder"
+                    }
+                  },
+                  "PrepOrderLogGroup": {
+                    "Type": "AWS::Logs::LogGroup",
+                    "Properties": {
+                      "LogGroupName": "/aws/lambda/pizzaApp-dev-prepOrder"
+                    }
+                  },
+                  "SendOrderLogGroup": {
+                    "Type": "AWS::Logs::LogGroup",
+                    "Properties": {
+                      "LogGroupName": "/aws/lambda/pizzaApp-dev-sendOrder"
+                    }
+                  },
+                  "IamRoleLambdaExecution": {
+                    "Type": "AWS::IAM::Role",
+                    "Properties": {
+                      "AssumeRolePolicyDocument": {
+                        "Version": "2012-10-17",
+                        "Statement": [
+                          {
+                            "Effect": "Allow",
+                            "Principal": {
+                              "Service": [
+                                "lambda.amazonaws.com"
+                              ]
+                            },
+                            "Action": [
+                              "sts:AssumeRole"
+                            ]
+                          }
+                        ]
+                      },
+                      "Policies": [
+                        {
+                          "PolicyName": {
+                            "Fn::Join": [
+                              "-",
+                              [
+                                "pizzaApp",
+                                "dev",
+                                "lambda"
+                              ]
+                            ]
+                          },
+                          "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                              {
+                                "Effect": "Allow",
+                                "Action": [
+                                  "logs:CreateLogStream",
+                                  "logs:CreateLogGroup",
+                                  "logs:TagResource"
+                                ],
+                                "Resource": [
+                                  {
+                                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/pizzaApp-dev*:*"
+                                  }
+                                ]
+                              },
+                              {
+                                "Effect": "Allow",
+                                "Action": [
+                                  "logs:PutLogEvents"
+                                ],
+                                "Resource": [
+                                  {
+                                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/pizzaApp-dev*:*:*"
+                                  }
+                                ]
+                              },
+                              {
+                                "Effect": "Allow",
+                                "Action": [
+                                  "sqs:sendMessage"
+                                ],
+                                "Resource": {
+                                  "Fn::GetAtt": [
+                                    "PendingOrderQueue",
+                                    "Arn"
+                                  ]
+                                }
+                              },
+                              {
+                                "Effect": "Allow",
+                                "Action": [
+                                  "sqs:sendMessage"
+                                ],
+                                "Resource": {
+                                  "Fn::GetAtt": [
+                                    "OrdersToSendQueue",
+                                    "Arn"
+                                  ]
+                                }
+                              },
+                              {
+                                "Effect": "Allow",
+                                "Action": [
+                                  "dynamodb:PutItem",
+                                  "dynamodb:UpdateItem",
+                                  "dynamodb:GetItem"
+                                ],
+                                "Resource": {
+                                  "Fn::GetAtt": [
+                                    "OrdersTable",
+                                    "Arn"
+                                  ]
+                                }
+                              },
+                              {
+                                "Effect": "Allow",
+                                "Action": [
+                                  "sqs:ReceiveMessage",
+                                  "sqs:DeleteMessage",
+                                  "sqs:GetQueueAttributes"
+                                ],
+                                "Resource": [
+                                  {
+                                    "Fn::GetAtt": [
+                                      "PendingOrderQueue",
+                                      "Arn"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "Path": "/",
+                      "RoleName": {
+                        "Fn::Join": [
+                          "-",
+                          [
+                            "pizzaApp",
+                            "dev",
+                            {
+                              "Ref": "AWS::Region"
+                            },
+                            "lambdaRole"
+                          ]
+                        ]
+                      }
+                    }
+                  },
+                  "NewOrderLambdaFunction": {
+                    "Type": "AWS::Lambda::Function",
+                    "Properties": {
+                      "Code": {
+                        "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
+                        "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
+                      },
+                      "Handler": "handler.newOrder",
+                      "Runtime": "nodejs22.x",
+                      "FunctionName": "pizzaApp-dev-newOrder",
+                      "MemorySize": 512,
+                      "Timeout": 6,
+                      "Environment": {
+                        "Variables": {
+                          "REGION": "us-east-1",
+                          "PENDING_ORDERS_QUEUE": {
+                            "Ref": "PendingOrderQueue"
+                          },
+                          "ORDERS_TABLE": {
+                            "Ref": "OrdersTable"
+                          }
+                        }
+                      },
+                      "Role": {
+                        "Fn::GetAtt": [
+                          "IamRoleLambdaExecution",
+                          "Arn"
+                        ]
+                      }
+                    },
+                    "DependsOn": [
+                      "NewOrderLogGroup"
+                    ]
+                  },
+                  "GetOrderLambdaFunction": {
+                    "Type": "AWS::Lambda::Function",
+                    "Properties": {
+                      "Code": {
+                        "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
+                        "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
+                      },
+                      "Handler": "handler.getOrder",
+                      "Runtime": "nodejs22.x",
+                      "FunctionName": "pizzaApp-dev-getOrder",
+                      "MemorySize": 512,
+                      "Timeout": 6,
+                      "Environment": {
+                        "Variables": {
+                          "REGION": "us-east-1",
+                          "ORDERS_TABLE": {
+                            "Ref": "OrdersTable"
+                          }
+                        }
+                      },
+                      "Role": {
+                        "Fn::GetAtt": [
+                          "IamRoleLambdaExecution",
+                          "Arn"
+                        ]
+                      }
+                    },
+                    "DependsOn": [
+                      "GetOrderLogGroup"
+                    ]
+                  },
+                  "PrepOrderLambdaFunction": {
+                    "Type": "AWS::Lambda::Function",
+                    "Properties": {
+                      "Code": {
+                        "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
+                        "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
+                      },
+                      "Handler": "handler.prepOrder",
+                      "Runtime": "nodejs22.x",
+                      "FunctionName": "pizzaApp-dev-prepOrder",
+                      "MemorySize": 512,
+                      "Timeout": 6,
+                      "Environment": {
+                        "Variables": {
+                          "REGION": "us-east-1",
+                          "ORDERS_TABLE": {
+                            "Ref": "OrdersTable"
+                          }
+                        }
+                      },
+                      "Role": {
+                        "Fn::GetAtt": [
+                          "IamRoleLambdaExecution",
+                          "Arn"
+                        ]
+                      }
+                    },
+                    "DependsOn": [
+                      "PrepOrderLogGroup"
+                    ]
+                  },
+                  "SendOrderLambdaFunction": {
+                    "Type": "AWS::Lambda::Function",
+                    "Properties": {
+                      "Code": {
+                        "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
+                        "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
+                      },
+                      "Handler": "handler.sendOrder",
+                      "Runtime": "nodejs22.x",
+                      "FunctionName": "pizzaApp-dev-sendOrder",
+                      "MemorySize": 512,
+                      "Timeout": 6,
+                      "Environment": {
+                        "Variables": {
+                          "REGION": "us-east-1",
+                          "ORDERS_TO_SEND_QUEUE": {
+                            "Ref": "OrdersToSendQueue"
+                          }
+                        }
+                      },
+                      "Role": {
+                        "Fn::GetAtt": [
+                          "IamRoleLambdaExecution",
+                          "Arn"
+                        ]
+                      }
+                    },
+                    "DependsOn": [
+                      "SendOrderLogGroup"
+                    ]
+                  },
+                  "NewOrderLambdaVersionC0JyEplAnmH9JXHgmYcdVKWwP9tSkV1m0J79ZFnMzs": {
+                    "Type": "AWS::Lambda::Version",
+                    "DeletionPolicy": "Retain",
+                    "Properties": {
+                      "FunctionName": {
+                        "Ref": "NewOrderLambdaFunction"
+                      },
+                      "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
+                    }
+                  },
+                  "GetOrderLambdaVersionXo7XpxJFNSIkUsL0RMmo8W3Q29pCCboJalALo7Hnw": {
+                    "Type": "AWS::Lambda::Version",
+                    "DeletionPolicy": "Retain",
+                    "Properties": {
+                      "FunctionName": {
+                        "Ref": "GetOrderLambdaFunction"
+                      },
+                      "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
+                    }
+                  },
+                  "PrepOrderLambdaVersionEnw5eK2MTUsMPddPaPPXuNW39SiDeE6k1sJcd9rvo": {
+                    "Type": "AWS::Lambda::Version",
+                    "DeletionPolicy": "Retain",
+                    "Properties": {
+                      "FunctionName": {
+                        "Ref": "PrepOrderLambdaFunction"
+                      },
+                      "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
+                    }
+                  },
+                  "SendOrderLambdaVersion2E8P6jqxTNDkbbNLfS7AsDKnsMzDDq80NWHq1j7vHEw": {
+                    "Type": "AWS::Lambda::Version",
+                    "DeletionPolicy": "Retain",
+                    "Properties": {
+                      "FunctionName": {
+                        "Ref": "SendOrderLambdaFunction"
+                      },
+                      "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
+                    }
+                  },
+                  "PrepOrderEventSourceMappingSQSPendingOrderQueue": {
+                    "Type": "AWS::Lambda::EventSourceMapping",
+                    "DependsOn": [
+                      "IamRoleLambdaExecution"
+                    ],
+                    "Properties": {
+                      "BatchSize": 1,
+                      "EventSourceArn": {
+                        "Fn::GetAtt": [
+                          "PendingOrderQueue",
+                          "Arn"
+                        ]
+                      },
+                      "FunctionName": {
+                        "Fn::GetAtt": [
+                          "PrepOrderLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "Enabled": true
+                    }
+                  },
+                  "HttpApi": {
+                    "Type": "AWS::ApiGatewayV2::Api",
+                    "Properties": {
+                      "Name": "dev-pizzaApp",
+                      "ProtocolType": "HTTP"
+                    }
+                  },
+                  "HttpApiStage": {
+                    "Type": "AWS::ApiGatewayV2::Stage",
+                    "Properties": {
+                      "ApiId": {
+                        "Ref": "HttpApi"
+                      },
+                      "StageName": "$default",
+                      "AutoDeploy": true,
+                      "DefaultRouteSettings": {
+                        "DetailedMetricsEnabled": false
+                      }
+                    }
+                  },
+                  "NewOrderLambdaPermissionHttpApi": {
+                    "Type": "AWS::Lambda::Permission",
+                    "Properties": {
+                      "FunctionName": {
+                        "Fn::GetAtt": [
+                          "NewOrderLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "Action": "lambda:InvokeFunction",
+                      "Principal": "apigateway.amazonaws.com",
+                      "SourceArn": {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":execute-api:",
+                            {
+                              "Ref": "AWS::Region"
+                            },
+                            ":",
+                            {
+                              "Ref": "AWS::AccountId"
+                            },
+                            ":",
+                            {
+                              "Ref": "HttpApi"
+                            },
+                            "/*"
+                          ]
+                        ]
+                      }
+                    }
+                  },
+                  "HttpApiIntegrationNewOrder": {
+                    "Type": "AWS::ApiGatewayV2::Integration",
+                    "Properties": {
+                      "ApiId": {
+                        "Ref": "HttpApi"
+                      },
+                      "IntegrationType": "AWS_PROXY",
+                      "IntegrationUri": {
+                        "Fn::GetAtt": [
+                          "NewOrderLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "PayloadFormatVersion": "2.0",
+                      "TimeoutInMillis": 30000
+                    }
+                  },
+                  "HttpApiRoutePostOrder": {
+                    "Type": "AWS::ApiGatewayV2::Route",
+                    "Properties": {
+                      "ApiId": {
+                        "Ref": "HttpApi"
+                      },
+                      "RouteKey": "POST /order",
+                      "Target": {
+                        "Fn::Join": [
+                          "/",
+                          [
+                            "integrations",
+                            {
+                              "Ref": "HttpApiIntegrationNewOrder"
+                            }
+                          ]
+                        ]
+                      }
+                    },
+                    "DependsOn": "HttpApiIntegrationNewOrder"
+                  },
+                  "GetOrderLambdaPermissionHttpApi": {
+                    "Type": "AWS::Lambda::Permission",
+                    "Properties": {
+                      "FunctionName": {
+                        "Fn::GetAtt": [
+                          "GetOrderLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "Action": "lambda:InvokeFunction",
+                      "Principal": "apigateway.amazonaws.com",
+                      "SourceArn": {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":execute-api:",
+                            {
+                              "Ref": "AWS::Region"
+                            },
+                            ":",
+                            {
+                              "Ref": "AWS::AccountId"
+                            },
+                            ":",
+                            {
+                              "Ref": "HttpApi"
+                            },
+                            "/*"
+                          ]
+                        ]
+                      }
+                    }
+                  },
+                  "HttpApiIntegrationGetOrder": {
+                    "Type": "AWS::ApiGatewayV2::Integration",
+                    "Properties": {
+                      "ApiId": {
+                        "Ref": "HttpApi"
+                      },
+                      "IntegrationType": "AWS_PROXY",
+                      "IntegrationUri": {
+                        "Fn::GetAtt": [
+                          "GetOrderLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "PayloadFormatVersion": "2.0",
+                      "TimeoutInMillis": 30000
+                    }
+                  },
+                  "HttpApiRouteGetOrderOrderidVar": {
+                    "Type": "AWS::ApiGatewayV2::Route",
+                    "Properties": {
+                      "ApiId": {
+                        "Ref": "HttpApi"
+                      },
+                      "RouteKey": "GET /order/{orderId}",
+                      "Target": {
+                        "Fn::Join": [
+                          "/",
+                          [
+                            "integrations",
+                            {
+                              "Ref": "HttpApiIntegrationGetOrder"
+                            }
+                          ]
+                        ]
+                      }
+                    },
+                    "DependsOn": "HttpApiIntegrationGetOrder"
+                  },
+                  "PendingOrderQueue": {
+                    "Type": "AWS::SQS::Queue",
+                    "Properties": {
+                      "QueueName": "pendingOrderQueue"
+                    }
+                  },
+                  "OrdersToSendQueue": {
+                    "Type": "AWS::SQS::Queue",
+                    "Properties": {
+                      "QueueName": "ordersToSendQueue"
+                    }
+                  },
+                  "OrdersTable": {
+                    "Type": "AWS::DynamoDB::Table",
+                    "Properties": {
+                      "TableName": "Orders",
+                      "AttributeDefinitions": [
+                        {
+                          "AttributeName": "orderId",
+                          "AttributeType": "S"
+                        }
+                      ],
+                      "KeySchema": [
+                        {
+                          "AttributeName": "orderId",
+                          "KeyType": "HASH"
+                        }
+                      ],
+                      "ProvisionedThroughput": {
+                        "ReadCapacityUnits": 1,
+                        "WriteCapacityUnits": 1
+                      }
+                    }
+                  }
+                },
+                "Outputs": {
+                  "ServerlessDeploymentBucketName": {
+                    "Value": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
+                    "Export": {
+                      "Name": "sls-pizzaApp-dev-ServerlessDeploymentBucketName"
+                    }
+                  },
+                  "NewOrderLambdaFunctionQualifiedArn": {
+                    "Description": "Current Lambda function version",
+                    "Value": {
+                      "Ref": "NewOrderLambdaVersionC0JyEplAnmH9JXHgmYcdVKWwP9tSkV1m0J79ZFnMzs"
+                    },
+                    "Export": {
+                      "Name": "sls-pizzaApp-dev-NewOrderLambdaFunctionQualifiedArn"
+                    }
+                  },
+                  "GetOrderLambdaFunctionQualifiedArn": {
+                    "Description": "Current Lambda function version",
+                    "Value": {
+                      "Ref": "GetOrderLambdaVersionXo7XpxJFNSIkUsL0RMmo8W3Q29pCCboJalALo7Hnw"
+                    },
+                    "Export": {
+                      "Name": "sls-pizzaApp-dev-GetOrderLambdaFunctionQualifiedArn"
+                    }
+                  },
+                  "PrepOrderLambdaFunctionQualifiedArn": {
+                    "Description": "Current Lambda function version",
+                    "Value": {
+                      "Ref": "PrepOrderLambdaVersionEnw5eK2MTUsMPddPaPPXuNW39SiDeE6k1sJcd9rvo"
+                    },
+                    "Export": {
+                      "Name": "sls-pizzaApp-dev-PrepOrderLambdaFunctionQualifiedArn"
+                    }
+                  },
+                  "SendOrderLambdaFunctionQualifiedArn": {
+                    "Description": "Current Lambda function version",
+                    "Value": {
+                      "Ref": "SendOrderLambdaVersion2E8P6jqxTNDkbbNLfS7AsDKnsMzDDq80NWHq1j7vHEw"
+                    },
+                    "Export": {
+                      "Name": "sls-pizzaApp-dev-SendOrderLambdaFunctionQualifiedArn"
+                    }
+                  },
+                  "HttpApiId": {
+                    "Description": "Id of the HTTP API",
+                    "Value": {
+                      "Ref": "HttpApi"
+                    },
+                    "Export": {
+                      "Name": "sls-pizzaApp-dev-HttpApiId"
+                    }
+                  },
+                  "HttpApiUrl": {
+                    "Description": "URL of the HTTP API",
+                    "Value": {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "https://",
+                          {
+                            "Ref": "HttpApi"
+                          },
+                          ".execute-api.",
+                          {
+                            "Ref": "AWS::Region"
+                          },
+                          ".",
+                          {
+                            "Ref": "AWS::URLSuffix"
+                          }
+                        ]
+                      ]
+                    },
+                    "Export": {
+                      "Name": "sls-pizzaApp-dev-HttpApiUrl"
+                    }
+                  }
+                }
+              },
+              "vpc": {}
             },
             "functions": {
               "newOrder": {
@@ -200,6 +1558,9 @@
                 "environment": {
                   "PENDING_ORDERS_QUEUE": {
                     "Ref": "PendingOrderQueue"
+                  },
+                  "ORDERS_TABLE": {
+                    "Ref": "OrdersTable"
                   }
                 },
                 "events": [
@@ -207,25 +1568,51 @@
                     "httpApi": {
                       "path": "/order",
                       "method": "post"
-                    }
+                    },
+                    "resolvedMethod": "POST",
+                    "resolvedPath": "/order"
                   }
                 ],
-                "name": "pizzaApp-dev-newOrder"
+                "name": "pizzaApp-dev-newOrder",
+                "package": {},
+                "memory": 512,
+                "timeout": 6,
+                "runtime": "nodejs22.x",
+                "vpc": {},
+                "versionLogicalId": "NewOrderLambdaVersionC0JyEplAnmH9JXHgmYcdVKWwP9tSkV1m0J79ZFnMzs"
               },
               "getOrder": {
                 "handler": "handler.getOrder",
+                "environment": {
+                  "ORDERS_TABLE": {
+                    "Ref": "OrdersTable"
+                  }
+                },
                 "events": [
                   {
                     "httpApi": {
                       "path": "/order/{orderId}",
                       "method": "get"
-                    }
+                    },
+                    "resolvedMethod": "GET",
+                    "resolvedPath": "/order/{orderId}"
                   }
                 ],
-                "name": "pizzaApp-dev-getOrder"
+                "name": "pizzaApp-dev-getOrder",
+                "package": {},
+                "memory": 512,
+                "timeout": 6,
+                "runtime": "nodejs22.x",
+                "vpc": {},
+                "versionLogicalId": "GetOrderLambdaVersionXo7XpxJFNSIkUsL0RMmo8W3Q29pCCboJalALo7Hnw"
               },
               "prepOrder": {
                 "handler": "handler.prepOrder",
+                "environment": {
+                  "ORDERS_TABLE": {
+                    "Ref": "OrdersTable"
+                  }
+                },
                 "events": [
                   {
                     "sqs": {
@@ -239,7 +1626,13 @@
                     }
                   }
                 ],
-                "name": "pizzaApp-dev-prepOrder"
+                "name": "pizzaApp-dev-prepOrder",
+                "package": {},
+                "memory": 512,
+                "timeout": 6,
+                "runtime": "nodejs22.x",
+                "vpc": {},
+                "versionLogicalId": "PrepOrderLambdaVersionEnw5eK2MTUsMPddPaPPXuNW39SiDeE6k1sJcd9rvo"
               },
               "sendOrder": {
                 "handler": "handler.sendOrder",
@@ -249,7 +1642,13 @@
                   }
                 },
                 "events": [],
-                "name": "pizzaApp-dev-sendOrder"
+                "name": "pizzaApp-dev-sendOrder",
+                "package": {},
+                "memory": 512,
+                "timeout": 6,
+                "runtime": "nodejs22.x",
+                "vpc": {},
+                "versionLogicalId": "SendOrderLambdaVersion2E8P6jqxTNDkbbNLfS7AsDKnsMzDDq80NWHq1j7vHEw"
               }
             },
             "resources": {
@@ -265,17 +1664,38 @@
                   "Properties": {
                     "QueueName": "ordersToSendQueue"
                   }
+                },
+                "OrdersTable": {
+                  "Type": "AWS::DynamoDB::Table",
+                  "Properties": {
+                    "TableName": "Orders",
+                    "AttributeDefinitions": [
+                      {
+                        "AttributeName": "orderId",
+                        "AttributeType": "S"
+                      }
+                    ],
+                    "KeySchema": [
+                      {
+                        "AttributeName": "orderId",
+                        "KeyType": "HASH"
+                      }
+                    ],
+                    "ProvisionedThroughput": {
+                      "ReadCapacityUnits": 1,
+                      "WriteCapacityUnits": 1
+                    }
+                  }
                 }
-              }
+              },
+              "Outputs": {}
             }
           },
           "configFileDirPath": "D:\\CURSOS\\Serverless_udemy\\serverless-framework",
           "config": {
             "type": "sls"
           },
-          "options": {
-            "function": "sendOrder"
-          },
+          "options": {},
           "stage": "dev",
           "dashboard": null,
           "logger": {
@@ -328,12 +1748,660 @@
                     "Arn"
                   ]
                 }
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:PutItem",
+                  "dynamodb:UpdateItem",
+                  "dynamodb:GetItem"
+                ],
+                "Resource": {
+                  "Fn::GetAtt": [
+                    "OrdersTable",
+                    "Arn"
+                  ]
+                }
               }
             ]
           }
         },
         "stage": "dev",
-        "versionFunctions": true
+        "versionFunctions": true,
+        "compiledCloudFormationTemplate": {
+          "AWSTemplateFormatVersion": "2010-09-09",
+          "Description": "The AWS CloudFormation template for this Serverless application",
+          "Resources": {
+            "NewOrderLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/pizzaApp-dev-newOrder"
+              }
+            },
+            "GetOrderLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/pizzaApp-dev-getOrder"
+              }
+            },
+            "PrepOrderLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/pizzaApp-dev-prepOrder"
+              }
+            },
+            "SendOrderLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/pizzaApp-dev-sendOrder"
+              }
+            },
+            "IamRoleLambdaExecution": {
+              "Type": "AWS::IAM::Role",
+              "Properties": {
+                "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Principal": {
+                        "Service": [
+                          "lambda.amazonaws.com"
+                        ]
+                      },
+                      "Action": [
+                        "sts:AssumeRole"
+                      ]
+                    }
+                  ]
+                },
+                "Policies": [
+                  {
+                    "PolicyName": {
+                      "Fn::Join": [
+                        "-",
+                        [
+                          "pizzaApp",
+                          "dev",
+                          "lambda"
+                        ]
+                      ]
+                    },
+                    "PolicyDocument": {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:CreateLogStream",
+                            "logs:CreateLogGroup",
+                            "logs:TagResource"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/pizzaApp-dev*:*"
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:PutLogEvents"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/pizzaApp-dev*:*:*"
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "sqs:sendMessage"
+                          ],
+                          "Resource": {
+                            "Fn::GetAtt": [
+                              "PendingOrderQueue",
+                              "Arn"
+                            ]
+                          }
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "sqs:sendMessage"
+                          ],
+                          "Resource": {
+                            "Fn::GetAtt": [
+                              "OrdersToSendQueue",
+                              "Arn"
+                            ]
+                          }
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "dynamodb:PutItem",
+                            "dynamodb:UpdateItem",
+                            "dynamodb:GetItem"
+                          ],
+                          "Resource": {
+                            "Fn::GetAtt": [
+                              "OrdersTable",
+                              "Arn"
+                            ]
+                          }
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "sqs:ReceiveMessage",
+                            "sqs:DeleteMessage",
+                            "sqs:GetQueueAttributes"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::GetAtt": [
+                                "PendingOrderQueue",
+                                "Arn"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "Path": "/",
+                "RoleName": {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      "pizzaApp",
+                      "dev",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      "lambdaRole"
+                    ]
+                  ]
+                }
+              }
+            },
+            "NewOrderLambdaFunction": {
+              "Type": "AWS::Lambda::Function",
+              "Properties": {
+                "Code": {
+                  "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
+                  "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
+                },
+                "Handler": "handler.newOrder",
+                "Runtime": "nodejs22.x",
+                "FunctionName": "pizzaApp-dev-newOrder",
+                "MemorySize": 512,
+                "Timeout": 6,
+                "Environment": {
+                  "Variables": {
+                    "REGION": "us-east-1",
+                    "PENDING_ORDERS_QUEUE": {
+                      "Ref": "PendingOrderQueue"
+                    },
+                    "ORDERS_TABLE": {
+                      "Ref": "OrdersTable"
+                    }
+                  }
+                },
+                "Role": {
+                  "Fn::GetAtt": [
+                    "IamRoleLambdaExecution",
+                    "Arn"
+                  ]
+                }
+              },
+              "DependsOn": [
+                "NewOrderLogGroup"
+              ]
+            },
+            "GetOrderLambdaFunction": {
+              "Type": "AWS::Lambda::Function",
+              "Properties": {
+                "Code": {
+                  "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
+                  "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
+                },
+                "Handler": "handler.getOrder",
+                "Runtime": "nodejs22.x",
+                "FunctionName": "pizzaApp-dev-getOrder",
+                "MemorySize": 512,
+                "Timeout": 6,
+                "Environment": {
+                  "Variables": {
+                    "REGION": "us-east-1",
+                    "ORDERS_TABLE": {
+                      "Ref": "OrdersTable"
+                    }
+                  }
+                },
+                "Role": {
+                  "Fn::GetAtt": [
+                    "IamRoleLambdaExecution",
+                    "Arn"
+                  ]
+                }
+              },
+              "DependsOn": [
+                "GetOrderLogGroup"
+              ]
+            },
+            "PrepOrderLambdaFunction": {
+              "Type": "AWS::Lambda::Function",
+              "Properties": {
+                "Code": {
+                  "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
+                  "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
+                },
+                "Handler": "handler.prepOrder",
+                "Runtime": "nodejs22.x",
+                "FunctionName": "pizzaApp-dev-prepOrder",
+                "MemorySize": 512,
+                "Timeout": 6,
+                "Environment": {
+                  "Variables": {
+                    "REGION": "us-east-1",
+                    "ORDERS_TABLE": {
+                      "Ref": "OrdersTable"
+                    }
+                  }
+                },
+                "Role": {
+                  "Fn::GetAtt": [
+                    "IamRoleLambdaExecution",
+                    "Arn"
+                  ]
+                }
+              },
+              "DependsOn": [
+                "PrepOrderLogGroup"
+              ]
+            },
+            "SendOrderLambdaFunction": {
+              "Type": "AWS::Lambda::Function",
+              "Properties": {
+                "Code": {
+                  "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
+                  "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
+                },
+                "Handler": "handler.sendOrder",
+                "Runtime": "nodejs22.x",
+                "FunctionName": "pizzaApp-dev-sendOrder",
+                "MemorySize": 512,
+                "Timeout": 6,
+                "Environment": {
+                  "Variables": {
+                    "REGION": "us-east-1",
+                    "ORDERS_TO_SEND_QUEUE": {
+                      "Ref": "OrdersToSendQueue"
+                    }
+                  }
+                },
+                "Role": {
+                  "Fn::GetAtt": [
+                    "IamRoleLambdaExecution",
+                    "Arn"
+                  ]
+                }
+              },
+              "DependsOn": [
+                "SendOrderLogGroup"
+              ]
+            },
+            "NewOrderLambdaVersionC0JyEplAnmH9JXHgmYcdVKWwP9tSkV1m0J79ZFnMzs": {
+              "Type": "AWS::Lambda::Version",
+              "DeletionPolicy": "Retain",
+              "Properties": {
+                "FunctionName": {
+                  "Ref": "NewOrderLambdaFunction"
+                },
+                "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
+              }
+            },
+            "GetOrderLambdaVersionXo7XpxJFNSIkUsL0RMmo8W3Q29pCCboJalALo7Hnw": {
+              "Type": "AWS::Lambda::Version",
+              "DeletionPolicy": "Retain",
+              "Properties": {
+                "FunctionName": {
+                  "Ref": "GetOrderLambdaFunction"
+                },
+                "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
+              }
+            },
+            "PrepOrderLambdaVersionEnw5eK2MTUsMPddPaPPXuNW39SiDeE6k1sJcd9rvo": {
+              "Type": "AWS::Lambda::Version",
+              "DeletionPolicy": "Retain",
+              "Properties": {
+                "FunctionName": {
+                  "Ref": "PrepOrderLambdaFunction"
+                },
+                "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
+              }
+            },
+            "SendOrderLambdaVersion2E8P6jqxTNDkbbNLfS7AsDKnsMzDDq80NWHq1j7vHEw": {
+              "Type": "AWS::Lambda::Version",
+              "DeletionPolicy": "Retain",
+              "Properties": {
+                "FunctionName": {
+                  "Ref": "SendOrderLambdaFunction"
+                },
+                "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
+              }
+            },
+            "PrepOrderEventSourceMappingSQSPendingOrderQueue": {
+              "Type": "AWS::Lambda::EventSourceMapping",
+              "DependsOn": [
+                "IamRoleLambdaExecution"
+              ],
+              "Properties": {
+                "BatchSize": 1,
+                "EventSourceArn": {
+                  "Fn::GetAtt": [
+                    "PendingOrderQueue",
+                    "Arn"
+                  ]
+                },
+                "FunctionName": {
+                  "Fn::GetAtt": [
+                    "PrepOrderLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "Enabled": true
+              }
+            },
+            "HttpApi": {
+              "Type": "AWS::ApiGatewayV2::Api",
+              "Properties": {
+                "Name": "dev-pizzaApp",
+                "ProtocolType": "HTTP"
+              }
+            },
+            "HttpApiStage": {
+              "Type": "AWS::ApiGatewayV2::Stage",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "StageName": "$default",
+                "AutoDeploy": true,
+                "DefaultRouteSettings": {
+                  "DetailedMetricsEnabled": false
+                }
+              }
+            },
+            "NewOrderLambdaPermissionHttpApi": {
+              "Type": "AWS::Lambda::Permission",
+              "Properties": {
+                "FunctionName": {
+                  "Fn::GetAtt": [
+                    "NewOrderLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":execute-api:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId"
+                      },
+                      ":",
+                      {
+                        "Ref": "HttpApi"
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              }
+            },
+            "HttpApiIntegrationNewOrder": {
+              "Type": "AWS::ApiGatewayV2::Integration",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "IntegrationType": "AWS_PROXY",
+                "IntegrationUri": {
+                  "Fn::GetAtt": [
+                    "NewOrderLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "PayloadFormatVersion": "2.0",
+                "TimeoutInMillis": 30000
+              }
+            },
+            "HttpApiRoutePostOrder": {
+              "Type": "AWS::ApiGatewayV2::Route",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "RouteKey": "POST /order",
+                "Target": {
+                  "Fn::Join": [
+                    "/",
+                    [
+                      "integrations",
+                      {
+                        "Ref": "HttpApiIntegrationNewOrder"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "DependsOn": "HttpApiIntegrationNewOrder"
+            },
+            "GetOrderLambdaPermissionHttpApi": {
+              "Type": "AWS::Lambda::Permission",
+              "Properties": {
+                "FunctionName": {
+                  "Fn::GetAtt": [
+                    "GetOrderLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":execute-api:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId"
+                      },
+                      ":",
+                      {
+                        "Ref": "HttpApi"
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              }
+            },
+            "HttpApiIntegrationGetOrder": {
+              "Type": "AWS::ApiGatewayV2::Integration",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "IntegrationType": "AWS_PROXY",
+                "IntegrationUri": {
+                  "Fn::GetAtt": [
+                    "GetOrderLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "PayloadFormatVersion": "2.0",
+                "TimeoutInMillis": 30000
+              }
+            },
+            "HttpApiRouteGetOrderOrderidVar": {
+              "Type": "AWS::ApiGatewayV2::Route",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "RouteKey": "GET /order/{orderId}",
+                "Target": {
+                  "Fn::Join": [
+                    "/",
+                    [
+                      "integrations",
+                      {
+                        "Ref": "HttpApiIntegrationGetOrder"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "DependsOn": "HttpApiIntegrationGetOrder"
+            },
+            "PendingOrderQueue": {
+              "Type": "AWS::SQS::Queue",
+              "Properties": {
+                "QueueName": "pendingOrderQueue"
+              }
+            },
+            "OrdersToSendQueue": {
+              "Type": "AWS::SQS::Queue",
+              "Properties": {
+                "QueueName": "ordersToSendQueue"
+              }
+            },
+            "OrdersTable": {
+              "Type": "AWS::DynamoDB::Table",
+              "Properties": {
+                "TableName": "Orders",
+                "AttributeDefinitions": [
+                  {
+                    "AttributeName": "orderId",
+                    "AttributeType": "S"
+                  }
+                ],
+                "KeySchema": [
+                  {
+                    "AttributeName": "orderId",
+                    "KeyType": "HASH"
+                  }
+                ],
+                "ProvisionedThroughput": {
+                  "ReadCapacityUnits": 1,
+                  "WriteCapacityUnits": 1
+                }
+              }
+            }
+          },
+          "Outputs": {
+            "ServerlessDeploymentBucketName": {
+              "Value": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
+              "Export": {
+                "Name": "sls-pizzaApp-dev-ServerlessDeploymentBucketName"
+              }
+            },
+            "NewOrderLambdaFunctionQualifiedArn": {
+              "Description": "Current Lambda function version",
+              "Value": {
+                "Ref": "NewOrderLambdaVersionC0JyEplAnmH9JXHgmYcdVKWwP9tSkV1m0J79ZFnMzs"
+              },
+              "Export": {
+                "Name": "sls-pizzaApp-dev-NewOrderLambdaFunctionQualifiedArn"
+              }
+            },
+            "GetOrderLambdaFunctionQualifiedArn": {
+              "Description": "Current Lambda function version",
+              "Value": {
+                "Ref": "GetOrderLambdaVersionXo7XpxJFNSIkUsL0RMmo8W3Q29pCCboJalALo7Hnw"
+              },
+              "Export": {
+                "Name": "sls-pizzaApp-dev-GetOrderLambdaFunctionQualifiedArn"
+              }
+            },
+            "PrepOrderLambdaFunctionQualifiedArn": {
+              "Description": "Current Lambda function version",
+              "Value": {
+                "Ref": "PrepOrderLambdaVersionEnw5eK2MTUsMPddPaPPXuNW39SiDeE6k1sJcd9rvo"
+              },
+              "Export": {
+                "Name": "sls-pizzaApp-dev-PrepOrderLambdaFunctionQualifiedArn"
+              }
+            },
+            "SendOrderLambdaFunctionQualifiedArn": {
+              "Description": "Current Lambda function version",
+              "Value": {
+                "Ref": "SendOrderLambdaVersion2E8P6jqxTNDkbbNLfS7AsDKnsMzDDq80NWHq1j7vHEw"
+              },
+              "Export": {
+                "Name": "sls-pizzaApp-dev-SendOrderLambdaFunctionQualifiedArn"
+              }
+            },
+            "HttpApiId": {
+              "Description": "Id of the HTTP API",
+              "Value": {
+                "Ref": "HttpApi"
+              },
+              "Export": {
+                "Name": "sls-pizzaApp-dev-HttpApiId"
+              }
+            },
+            "HttpApiUrl": {
+              "Description": "URL of the HTTP API",
+              "Value": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "https://",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    ".execute-api.",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ".",
+                    {
+                      "Ref": "AWS::URLSuffix"
+                    }
+                  ]
+                ]
+              },
+              "Export": {
+                "Name": "sls-pizzaApp-dev-HttpApiUrl"
+              }
+            }
+          }
+        },
+        "vpc": {}
       },
       "functions": {
         "newOrder": {
@@ -341,6 +2409,9 @@
           "environment": {
             "PENDING_ORDERS_QUEUE": {
               "Ref": "PendingOrderQueue"
+            },
+            "ORDERS_TABLE": {
+              "Ref": "OrdersTable"
             }
           },
           "events": [
@@ -348,25 +2419,51 @@
               "httpApi": {
                 "path": "/order",
                 "method": "post"
-              }
+              },
+              "resolvedMethod": "POST",
+              "resolvedPath": "/order"
             }
           ],
-          "name": "pizzaApp-dev-newOrder"
+          "name": "pizzaApp-dev-newOrder",
+          "package": {},
+          "memory": 512,
+          "timeout": 6,
+          "runtime": "nodejs22.x",
+          "vpc": {},
+          "versionLogicalId": "NewOrderLambdaVersionC0JyEplAnmH9JXHgmYcdVKWwP9tSkV1m0J79ZFnMzs"
         },
         "getOrder": {
           "handler": "handler.getOrder",
+          "environment": {
+            "ORDERS_TABLE": {
+              "Ref": "OrdersTable"
+            }
+          },
           "events": [
             {
               "httpApi": {
                 "path": "/order/{orderId}",
                 "method": "get"
-              }
+              },
+              "resolvedMethod": "GET",
+              "resolvedPath": "/order/{orderId}"
             }
           ],
-          "name": "pizzaApp-dev-getOrder"
+          "name": "pizzaApp-dev-getOrder",
+          "package": {},
+          "memory": 512,
+          "timeout": 6,
+          "runtime": "nodejs22.x",
+          "vpc": {},
+          "versionLogicalId": "GetOrderLambdaVersionXo7XpxJFNSIkUsL0RMmo8W3Q29pCCboJalALo7Hnw"
         },
         "prepOrder": {
           "handler": "handler.prepOrder",
+          "environment": {
+            "ORDERS_TABLE": {
+              "Ref": "OrdersTable"
+            }
+          },
           "events": [
             {
               "sqs": {
@@ -380,7 +2477,13 @@
               }
             }
           ],
-          "name": "pizzaApp-dev-prepOrder"
+          "name": "pizzaApp-dev-prepOrder",
+          "package": {},
+          "memory": 512,
+          "timeout": 6,
+          "runtime": "nodejs22.x",
+          "vpc": {},
+          "versionLogicalId": "PrepOrderLambdaVersionEnw5eK2MTUsMPddPaPPXuNW39SiDeE6k1sJcd9rvo"
         },
         "sendOrder": {
           "handler": "handler.sendOrder",
@@ -390,7 +2493,13 @@
             }
           },
           "events": [],
-          "name": "pizzaApp-dev-sendOrder"
+          "name": "pizzaApp-dev-sendOrder",
+          "package": {},
+          "memory": 512,
+          "timeout": 6,
+          "runtime": "nodejs22.x",
+          "vpc": {},
+          "versionLogicalId": "SendOrderLambdaVersion2E8P6jqxTNDkbbNLfS7AsDKnsMzDDq80NWHq1j7vHEw"
         }
       },
       "resources": {
@@ -406,17 +2515,38 @@
             "Properties": {
               "QueueName": "ordersToSendQueue"
             }
+          },
+          "OrdersTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "Orders",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "orderId",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "orderId",
+                  "KeyType": "HASH"
+                }
+              ],
+              "ProvisionedThroughput": {
+                "ReadCapacityUnits": 1,
+                "WriteCapacityUnits": 1
+              }
+            }
           }
-        }
+        },
+        "Outputs": {}
       }
     },
-    "serviceRawFile": "service: pizzaApp\r\n\r\nprovider:\r\n  name: aws\r\n  runtime: nodejs22.x\r\n  profile: personal\r\n  region: us-east-1\r\n  environment:\r\n    REGION: ${self:provider.region}\r\n  memorySize: 512\r\n  iam:\r\n    role:\r\n      statements:\r\n        - Effect: Allow\r\n          Action:\r\n            - sqs:sendMessage\r\n          Resource:\r\n            Fn::GetAtt: [PendingOrderQueue, Arn]\r\n        - Effect: Allow\r\n          Action:\r\n            - sqs:sendMessage\r\n          Resource:\r\n            Fn::GetAtt: [OrdersToSendQueue, Arn]\r\nfunctions:\r\n  newOrder:\r\n    handler: handler.newOrder\r\n    environment:\r\n      PENDING_ORDERS_QUEUE: \r\n        Ref: PendingOrderQueue\r\n    events:\r\n      - httpApi:\r\n          path: /order\r\n          method: post\r\n  getOrder:\r\n    handler: handler.getOrder\r\n    events:\r\n      - httpApi:\r\n          path: /order/{orderId}\r\n          method: get\r\n  prepOrder:\r\n    handler: handler.prepOrder\r\n    events:\r\n      - sqs:\r\n          arn:\r\n            Fn::GetAtt: [PendingOrderQueue, Arn]\r\n          batchSize: 1\r\n  sendOrder: \r\n    handler: handler.sendOrder\r\n    environment:\r\n      ORDERS_TO_SEND_QUEUE: \r\n        Ref: OrdersToSendQueue\r\n        \r\nresources:\r\n  Resources:\r\n    PendingOrderQueue:\r\n      Type: AWS::SQS::Queue\r\n      Properties:\r\n        QueueName: pendingOrderQueue\r\n    OrdersToSendQueue:\r\n      Type: AWS::SQS::Queue\r\n      Properties:\r\n        QueueName: ordersToSendQueue",
+    "serviceRawFile": "service: pizzaApp\r\n\r\nprovider:\r\n  name: aws\r\n  runtime: nodejs22.x\r\n  profile: personal\r\n  region: us-east-1\r\n  environment:\r\n    REGION: ${self:provider.region}\r\n  memorySize: 512\r\n  iam:\r\n    role:\r\n      statements:\r\n        - Effect: Allow\r\n          Action:\r\n            - sqs:sendMessage\r\n          Resource:\r\n            Fn::GetAtt: [PendingOrderQueue, Arn]\r\n        - Effect: Allow\r\n          Action:\r\n            - sqs:sendMessage\r\n          Resource:\r\n            Fn::GetAtt: [OrdersToSendQueue, Arn]\r\n        - Effect: Allow\r\n          Action:\r\n            - dynamodb:PutItem\r\n            - dynamodb:UpdateItem\r\n            - dynamodb:GetItem\r\n          Resource:\r\n            Fn::GetAtt: [OrdersTable, Arn]    \r\nfunctions:\r\n  newOrder:\r\n    handler: handler.newOrder\r\n    environment:\r\n      PENDING_ORDERS_QUEUE: \r\n        Ref: PendingOrderQueue\r\n      ORDERS_TABLE: \r\n        Ref: OrdersTable  \r\n    events:\r\n      - httpApi:\r\n          path: /order\r\n          method: post\r\n  getOrder:\r\n    handler: handler.getOrder\r\n    environment:\r\n      ORDERS_TABLE: \r\n        Ref: OrdersTable\r\n    events:\r\n      - httpApi:\r\n          path: /order/{orderId}\r\n          method: get\r\n  prepOrder:\r\n    handler: handler.prepOrder\r\n    environment:\r\n      ORDERS_TABLE: \r\n        Ref: OrdersTable\r\n    events:\r\n      - sqs:\r\n          arn:\r\n            Fn::GetAtt: [PendingOrderQueue, Arn]\r\n          batchSize: 1\r\n  sendOrder: \r\n    handler: handler.sendOrder\r\n    environment:\r\n      ORDERS_TO_SEND_QUEUE: \r\n        Ref: OrdersToSendQueue\r\n        \r\nresources:\r\n  Resources:\r\n    PendingOrderQueue:\r\n      Type: AWS::SQS::Queue\r\n      Properties:\r\n        QueueName: pendingOrderQueue\r\n    OrdersToSendQueue:\r\n      Type: AWS::SQS::Queue\r\n      Properties:\r\n        QueueName: ordersToSendQueue\r\n    OrdersTable:\r\n      Type: AWS::DynamoDB::Table\r\n      Properties:\r\n        TableName: Orders\r\n        AttributeDefinitions:\r\n          - AttributeName: orderId \r\n            AttributeType: S\r\n        KeySchema:\r\n          - AttributeName: orderId\r\n            KeyType: HASH\r\n        ProvisionedThroughput:\r\n          ReadCapacityUnits: 1\r\n          WriteCapacityUnits: 1",
     "command": [
-      "logs"
+      "deploy"
     ],
-    "options": {
-      "function": "sendOrder"
-    },
+    "options": {},
     "error": null,
     "params": {},
     "machineId": "b380d17ca3568e9fd64e50b68e45a766",
@@ -448,24 +2578,24 @@
     "serviceUniqueId": "arn:aws:cloudformation:us-east-1:590184132147:stack/pizzaApp-dev/47750070-bcd9-11ef-8001-0affeeb428c9",
     "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-1:590184132147:stack/pizzaApp-dev/47750070-bcd9-11ef-8001-0affeeb428c9",
     "serviceProviderAwsCfStackCreated": "2024-12-18T00:44:46.670Z",
-    "serviceProviderAwsCfStackUpdated": "2024-12-18T14:53:52.521Z",
+    "serviceProviderAwsCfStackUpdated": "2024-12-18T23:03:38.173Z",
     "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
     "serviceProviderAwsCfStackOutputs": [
       {
         "OutputKey": "PrepOrderLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:us-east-1:590184132147:function:pizzaApp-dev-prepOrder:3",
+        "OutputValue": "arn:aws:lambda:us-east-1:590184132147:function:pizzaApp-dev-prepOrder:8",
         "Description": "Current Lambda function version",
         "ExportName": "sls-pizzaApp-dev-PrepOrderLambdaFunctionQualifiedArn"
       },
       {
         "OutputKey": "SendOrderLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:us-east-1:590184132147:function:pizzaApp-dev-sendOrder:1",
+        "OutputValue": "arn:aws:lambda:us-east-1:590184132147:function:pizzaApp-dev-sendOrder:6",
         "Description": "Current Lambda function version",
         "ExportName": "sls-pizzaApp-dev-SendOrderLambdaFunctionQualifiedArn"
       },
       {
         "OutputKey": "GetOrderLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:us-east-1:590184132147:function:pizzaApp-dev-getOrder:4",
+        "OutputValue": "arn:aws:lambda:us-east-1:590184132147:function:pizzaApp-dev-getOrder:9",
         "Description": "Current Lambda function version",
         "ExportName": "sls-pizzaApp-dev-GetOrderLambdaFunctionQualifiedArn"
       },
@@ -477,7 +2607,7 @@
       },
       {
         "OutputKey": "NewOrderLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:us-east-1:590184132147:function:pizzaApp-dev-newOrder:5",
+        "OutputValue": "arn:aws:lambda:us-east-1:590184132147:function:pizzaApp-dev-newOrder:10",
         "Description": "Current Lambda function version",
         "ExportName": "sls-pizzaApp-dev-NewOrderLambdaFunctionQualifiedArn"
       },

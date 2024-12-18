@@ -111,6 +111,20 @@
                 {
                   "Effect": "Allow",
                   "Action": [
+                    "dynamodb:PutItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:GetItem"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "OrdersTable",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
                     "sqs:ReceiveMessage",
                     "sqs:DeleteMessage",
                     "sqs:GetQueueAttributes"
@@ -149,7 +163,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
-          "S3Key": "serverless/pizzaApp/dev/1734533616582-2024-12-18T14:53:36.582Z/pizzaApp.zip"
+          "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
         },
         "Handler": "handler.newOrder",
         "Runtime": "nodejs22.x",
@@ -161,6 +175,9 @@
             "REGION": "us-east-1",
             "PENDING_ORDERS_QUEUE": {
               "Ref": "PendingOrderQueue"
+            },
+            "ORDERS_TABLE": {
+              "Ref": "OrdersTable"
             }
           }
         },
@@ -180,7 +197,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
-          "S3Key": "serverless/pizzaApp/dev/1734533616582-2024-12-18T14:53:36.582Z/pizzaApp.zip"
+          "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
         },
         "Handler": "handler.getOrder",
         "Runtime": "nodejs22.x",
@@ -189,7 +206,10 @@
         "Timeout": 6,
         "Environment": {
           "Variables": {
-            "REGION": "us-east-1"
+            "REGION": "us-east-1",
+            "ORDERS_TABLE": {
+              "Ref": "OrdersTable"
+            }
           }
         },
         "Role": {
@@ -208,7 +228,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
-          "S3Key": "serverless/pizzaApp/dev/1734533616582-2024-12-18T14:53:36.582Z/pizzaApp.zip"
+          "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
         },
         "Handler": "handler.prepOrder",
         "Runtime": "nodejs22.x",
@@ -217,7 +237,10 @@
         "Timeout": 6,
         "Environment": {
           "Variables": {
-            "REGION": "us-east-1"
+            "REGION": "us-east-1",
+            "ORDERS_TABLE": {
+              "Ref": "OrdersTable"
+            }
           }
         },
         "Role": {
@@ -236,7 +259,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-d57deb8b-8a68",
-          "S3Key": "serverless/pizzaApp/dev/1734533616582-2024-12-18T14:53:36.582Z/pizzaApp.zip"
+          "S3Key": "serverless/pizzaApp/dev/1734563010962-2024-12-18T23:03:30.962Z/pizzaApp.zip"
         },
         "Handler": "handler.sendOrder",
         "Runtime": "nodejs22.x",
@@ -262,44 +285,44 @@
         "SendOrderLogGroup"
       ]
     },
-    "NewOrderLambdaVersionogmTnAzaGJUMvk3OW488lqGbf02kIaE3jXEXg1Ices": {
+    "NewOrderLambdaVersionC0JyEplAnmH9JXHgmYcdVKWwP9tSkV1m0J79ZFnMzs": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "NewOrderLambdaFunction"
         },
-        "CodeSha256": "Mzw6pe4+VVB9rKFA5kEuI4qpCun2IWvECTtpzKUGHV0="
+        "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
       }
     },
-    "GetOrderLambdaVersionVbKbWAmgoGBDAUrhMpfEbZBz4qbtR9RjG62vKiydw": {
+    "GetOrderLambdaVersionXo7XpxJFNSIkUsL0RMmo8W3Q29pCCboJalALo7Hnw": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "GetOrderLambdaFunction"
         },
-        "CodeSha256": "Mzw6pe4+VVB9rKFA5kEuI4qpCun2IWvECTtpzKUGHV0="
+        "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
       }
     },
-    "PrepOrderLambdaVersionvjNLONBF4O1OhxveekfTqrB9wnL09fvSfPXPCdsejo": {
+    "PrepOrderLambdaVersionEnw5eK2MTUsMPddPaPPXuNW39SiDeE6k1sJcd9rvo": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "PrepOrderLambdaFunction"
         },
-        "CodeSha256": "Mzw6pe4+VVB9rKFA5kEuI4qpCun2IWvECTtpzKUGHV0="
+        "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
       }
     },
-    "SendOrderLambdaVersionfDT9LaXuKduATdyfbQI7H8ngxxF72A1TOIf0Q5T84": {
+    "SendOrderLambdaVersion2E8P6jqxTNDkbbNLfS7AsDKnsMzDDq80NWHq1j7vHEw": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "SendOrderLambdaFunction"
         },
-        "CodeSha256": "Mzw6pe4+VVB9rKFA5kEuI4qpCun2IWvECTtpzKUGHV0="
+        "CodeSha256": "DsTmfMKf65WdN1vtbUKTK2aYTr85VPKoqkF8mSMPpHU="
       }
     },
     "PrepOrderEventSourceMappingSQSPendingOrderQueue": {
@@ -505,6 +528,28 @@
       "Properties": {
         "QueueName": "ordersToSendQueue"
       }
+    },
+    "OrdersTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "Orders",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "orderId",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "orderId",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 1,
+          "WriteCapacityUnits": 1
+        }
+      }
     }
   },
   "Outputs": {
@@ -517,7 +562,7 @@
     "NewOrderLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "NewOrderLambdaVersionogmTnAzaGJUMvk3OW488lqGbf02kIaE3jXEXg1Ices"
+        "Ref": "NewOrderLambdaVersionC0JyEplAnmH9JXHgmYcdVKWwP9tSkV1m0J79ZFnMzs"
       },
       "Export": {
         "Name": "sls-pizzaApp-dev-NewOrderLambdaFunctionQualifiedArn"
@@ -526,7 +571,7 @@
     "GetOrderLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "GetOrderLambdaVersionVbKbWAmgoGBDAUrhMpfEbZBz4qbtR9RjG62vKiydw"
+        "Ref": "GetOrderLambdaVersionXo7XpxJFNSIkUsL0RMmo8W3Q29pCCboJalALo7Hnw"
       },
       "Export": {
         "Name": "sls-pizzaApp-dev-GetOrderLambdaFunctionQualifiedArn"
@@ -535,7 +580,7 @@
     "PrepOrderLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "PrepOrderLambdaVersionvjNLONBF4O1OhxveekfTqrB9wnL09fvSfPXPCdsejo"
+        "Ref": "PrepOrderLambdaVersionEnw5eK2MTUsMPddPaPPXuNW39SiDeE6k1sJcd9rvo"
       },
       "Export": {
         "Name": "sls-pizzaApp-dev-PrepOrderLambdaFunctionQualifiedArn"
@@ -544,7 +589,7 @@
     "SendOrderLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "SendOrderLambdaVersionfDT9LaXuKduATdyfbQI7H8ngxxF72A1TOIf0Q5T84"
+        "Ref": "SendOrderLambdaVersion2E8P6jqxTNDkbbNLfS7AsDKnsMzDDq80NWHq1j7vHEw"
       },
       "Export": {
         "Name": "sls-pizzaApp-dev-SendOrderLambdaFunctionQualifiedArn"
